@@ -424,11 +424,14 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
           <option value="java">☕ Java</option>
 	   <option value="php">🐘 PHP</option>
         </select>
-        <button class="btn btn-primary btn-sm" onclick="runCode()">▶ Run</button>
-        <button class="btn btn-secondary btn-sm" onclick="clearEditor()">Clear</button>
-        <button class="btn btn-secondary btn-sm" onclick="copyEditor()">Copy</button>
+    
       </div>
       <textarea id="codeInput" spellcheck="false" placeholder="// Write your code here…"></textarea>
+		<div style="display:flex;gap:8px;padding:8px 12px;background:var(--bg2);border-top:1px solid var(--border);">
+  <button class="btn btn-primary btn-sm" onclick="runCode()">▶ Run</button>
+  <button class="btn btn-secondary btn-sm" onclick="clearEditor()">Clear</button>
+  <button class="btn btn-secondary btn-sm" onclick="copyEditor()">Copy</button>
+</div>
       <div class="chal-panel">
         <div class="chal-hdr"><span>📋 Challenges</span><span id="chalCount" style="font-size:.7rem;color:var(--text2);font-family:'JetBrains Mono',monospace;"></span></div>
         <div id="chalList"></div>
