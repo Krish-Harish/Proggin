@@ -266,13 +266,57 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
   .hero h1{font-size:1.7rem;}
   .nav-tab{font-size:.74rem;padding:5px 9px;}
 }
+/* ── STREAK ── */
+.streak-bar{display:flex;align-items:center;gap:8px;
+  padding:4px 14px;background:rgba(245,158,11,.1);
+  border:1px solid rgba(245,158,11,.25);
+  border-radius:20px;cursor:default;
+  font-size:.78rem;font-weight:700;color:var(--accent3);}
+.streak-bar .s-fire{font-size:.9rem;}
+.streak-freeze{
+  font-size:.65rem;color:var(--text2);
+  font-weight:500;}
+.streak-dot-row{
+  display:flex;gap:4px;align-items:center;}
+.sdot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--bg3);border:1px solid var(--border);}
+.sdot.active{
+  background:var(--accent3);border-color:var(--accent3);}
+.sdot.today{
+  box-shadow:0 0 0 2px rgba(245,158,11,.35);}
+/* streak card in profile */
+.streak-card-full{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;
+  grid-column:1/-1;}
+.streak-big{
+  font-family:'Syne',sans-serif;
+  font-size:2.8rem;font-weight:800;
+  color:var(--accent3);}
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;margin-top:12px;}
+.cal-day{
+  aspect-ratio:1;border-radius:6px;
+  background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;
+  justify-content:center;font-size:.62rem;
+  color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.cal-day.done{
+  background:rgba(245,158,11,.15);
+  border-color:var(--accent3);color:var(--accent3);}
+.cal-day.today-c{
+  border-color:var(--accent);color:var(--accent);
+  font-weight:700;}
 </style>
 </head>
 <body>
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo" onclick="showView('home')">ProGGin</div>
+  <div class="logo" onclick="showView('home')">//ProGGin</div>
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="showView('home')">🏠 Home</div>
     <div class="nav-tab" onclick="showView('courses')">📚 Courses</div>
@@ -282,6 +326,13 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
     <div class="nav-tab" onclick="showView('profile')">📊 Progress</div>
   </div>
   <div class="topbar-right">
+<!-- Add this inside .topbar-right div, before the theme-btn -->
+<div class="streak-bar" id="streakPill"
+     title="Your current learning streak">
+  <span class="s-fire">🔥</span>
+  <span id="streakNum">0</span>days
+  <span class="streak-dot-row" id="streakDots"></span>
+</div>
     <div class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></div>
   </div>
 </div>
@@ -438,7 +489,7 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
           <div class="profile-av">P</div>
           <div>
-            <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;">ProGGin Learner</div>
+            <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;">//KRISH</div>
             <div style="font-size:.78rem;color:var(--text2);margin-top:2px;">Keep coding every day! 🚀</div>
           </div>
         </div>
@@ -458,6 +509,13 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
         <div id="achievementsList"></div>
       </div>
     </div>
+<!-- Add as a new card inside .profile-grid div -->
+<div class="profile-card streak-card-full">
+  <div style="font-weight:700;margin-bottom:12px;">
+    🔥 Streak & Activity
+  </div>
+  <div id="streakCardContainer"></div>
+</div>
   </div>
 </div>
 
@@ -3113,6 +3171,10 @@ function populateProfile(){
       <div class="ach-ico">${a.icon}</div>
       <div><div style="font-weight:600;font-size:.84rem;">${a.title}</div><div style="font-size:.75rem;color:var(--text2);">${a.desc}</div></div>
     </div>`).join('');
+// Find the existing populateProfile() function
+// Add this ONE line at the very end of it, just before the closing }
+
+  renderStreakCard();
 }
 
 function updateStats(){
@@ -3128,6 +3190,110 @@ function updateStats(){
 /* ══════════════════════════════
    INIT
 ══════════════════════════════ */
+/* ══════════════════════════════
+   STREAK SYSTEM
+══════════════════════════════ */
+const STREAK = {
+  getLog: () => S.get('activityLog') || [],
+  saveLog: log => S.set('activityLog', log),
+  todayStr: () => new Date().toISOString().slice(0,10),
+
+  recordToday() {
+    const log = [...new Set([...this.getLog(), this.todayStr()])];
+    this.saveLog(log);
+    this.refresh();
+  },
+
+  count() {
+    const log = this.getLog();
+    let streak = 0, d = new Date();
+    while (streak < 365) {
+      const s = d.toISOString().slice(0,10);
+      if (!log.includes(s)) break;
+      streak++; d.setDate(d.getDate() - 1);
+    }
+    return streak;
+  },
+
+  last7() {
+    const log = this.getLog(), days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0,10));
+    }
+    return days.map(d => ({ date:d, active: log.includes(d),
+                            today: d === this.todayStr() }));
+  },
+
+  refresh() {
+    const n = this.count(), days = this.last7();
+    const el = document.getElementById('streakNum');
+    const dots = document.getElementById('streakDots');
+    if (el) el.textContent = n;
+    if (dots) dots.innerHTML = days.map(d =>
+      `<div class="sdot${d.active?' active':''}${d.today?' today':''}"
+       title="${d.date}"></div>`).join('');
+  }
+};
+
+// Hook into markDone — record activity when lesson completed
+const _origMarkDone = markDone;
+markDone = function(id) {
+  _origMarkDone(id);
+  STREAK.recordToday();
+  showToast('🔥 Streak updated!', 'ok');
+};
+
+// Also hook into answerQuiz
+const _origAnswer = answerQuiz;
+answerQuiz = function(idx) {
+  _origAnswer(idx);
+  STREAK.recordToday();
+};
+
+// Streak card in profile — call this inside populateProfile()
+function renderStreakCard() {
+  const streak = STREAK.count();
+  const log = STREAK.getLog();
+  const today = STREAK.todayStr();
+  const longest = (function() {
+    if (!log.length) return 0;
+    const sorted = [...log].sort();
+    let best=1, cur=1;
+    for(let i=1;i<sorted.length;i++){
+      const diff=(new Date(sorted[i])-new Date(sorted[i-1]))/86400000;
+      if(diff===1){cur++;best=Math.max(best,cur);}
+      else cur=1;
+    }
+    return best;
+  })();
+
+  // Build 28-day calendar grid
+  const calDays=[];
+  for(let i=27;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const s=d.toISOString().slice(0,10);
+    calDays.push({s,done:log.includes(s),isToday:s===today,day:d.getDate()});
+  }
+
+  const container=document.getElementById('streakCardContainer');
+  if(!container)return;
+  container.innerHTML=`
+  <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px;">
+    <span class="streak-big">🔥 ${streak}</span>
+    <span style="color:var(--text2);font-size:.85rem;">day streak</span>
+    <span style="margin-left:auto;font-size:.78rem;color:var(--text2);">
+      Longest: <strong style="color:var(--accent3)">${longest}d</strong>
+    </span>
+  </div>
+  <p style="font-size:.77rem;color:var(--text3);margin-bottom:6px;">Last 28 days</p>
+  <div class="cal-grid">
+    ${calDays.map(d=>`<div class="cal-day${d.done?' done':''}${d.isToday?' today-c':''}">${d.day}</div>`).join('')}
+  </div>`;
+}
+
+STREAK.refresh();  // init on page load
 buildHomeGrid();
 showCheatsheet('python',document.querySelector('#cheatFilter .filter-pill'));
 showRoadmap('python',document.querySelector('#view-roadmap .filter-pill'));
