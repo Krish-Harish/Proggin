@@ -4570,7 +4570,7 @@ function updateName(val) {
   const clean = val.trim();
   const letter = clean ? clean[0].toUpperCase() : '?';
   document.getElementById('profileAv').textContent = letter;
-  document.getElementById('displayName').textContent = clean ? '//' + clean.toUpperCase() : '//USER';
+  document.getElementById('displayName').textContent = clean ? '//' + clean.toUpperCase() : 'USER';
   S.set('username', clean);
 }
 
