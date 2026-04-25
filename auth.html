@@ -874,7 +874,7 @@ async function handleLogin(e) {
     localStorage.setItem('pg_user', JSON.stringify({email, timestamp: new Date().toISOString()}));
     showToast('Login successful! Redirecting...', 'ok');
     
-    setTimeout(() => window.location.href = 'index.html', 1000);
+    setTimeout(() => window.location.href = './index.html', 1000);
   } catch(err) {
     btn.classList.remove('loading');
     btnText.textContent = 'Log In';
@@ -928,7 +928,7 @@ async function handleSignup(e) {
     localStorage.setItem('pg_user', JSON.stringify(userData));
     showToast('Account created! Redirecting...', 'ok');
     
-    setTimeout(() => window.location.href = 'index.html', 1000);
+    setTimeout(() => window.location.href = './index.html', 1000);
   } catch(err) {
     btn.classList.remove('loading');
     btnText.textContent = 'Create Account';
