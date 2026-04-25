@@ -335,7 +335,7 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
   <span id="streakNum">0</span>days
   <span class="streak-dot-row" id="streakDots"></span>
 </div>
-    <div class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></div>
+   <button class="btn btn-secondary btn-sm" onclick="logout()" style="font-size:.72rem;">Logout</button>
   </div>
 </div>
 
@@ -631,6 +631,10 @@ textarea#codeInput{flex:1;width:100%;background:#050a11;color:#c4cde0;font-famil
 /* ══════════════════════════════
    STORAGE
 ══════════════════════════════ */
+	(()=>{
+  const user = localStorage.getItem('pg_user');
+  if(!user) window.location.href = './auth.html';
+})();
 const S={
   get:k=>{try{return JSON.parse(localStorage.getItem('pg_'+k))}catch{return null}},
   set:(k,v)=>localStorage.setItem('pg_'+k,JSON.stringify(v))
@@ -643,6 +647,10 @@ let quizData=[],quizIdx=0,quizScore=0,quizAnswered=false;
 /* ══════════════════════════════
    THEME
 ══════════════════════════════ */
+	function logout(){
+  localStorage.removeItem('pg_user');
+  window.location.href = './auth.html';
+}
 function toggleTheme(){
   const t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
   document.documentElement.setAttribute('data-theme',t);
